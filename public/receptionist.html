@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Receptionist View</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #2c3e50; }
+    .card { background: #f4f6f8; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    input, button { padding: 10px; font-size: 16px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+    button { background: #2c7be5; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #1a5fb4; }
+    .current-token { font-size: 40px; font-weight: bold; color: #2c7be5; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <h1>🏥 Receptionist View</h1>
+
+  <div class="card">
+    <h3>Add Patient</h3>
+    <input type="text" id="patientName" placeholder="Patient name">
+    <button onclick="addPatient()">Add Patient</button>
+  </div>
+
+  <div class="card">
+    <h3>Current Token</h3>
+    <div class="current-token" id="currentToken">0</div>
+    <button onclick="callNext()">📢 Call Next</button>
+  </div>
+
+  <div class="card">
+    <h3>Average Consultation Time (minutes)</h3>
+    <input type="number" id="avgTime" placeholder="e.g. 5">
+    <button onclick="setAvgTime()">Update Time</button>
+  </div>
+
+  <div class="card">
+    <h3>Waiting List</h3>
+    <ul id="waitingList"></ul>
+  </div>
+
+  <!-- This script tag connects us to Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io(); // connect to our server
+
+    // When server sends an update, refresh the screen
+    socket.on('queueUpdate', (queue) => {
+      document.getElementById('currentToken').innerText = queue.currentToken;
+
+      const list = document.getElementById('waitingList');
+      list.innerHTML = ''; // clear old list
+      queue.waitingList.forEach(patient => {
+        const li = document.createElement('li');
+        li.innerText = `Token ${patient.token} - ${patient.name}`;
+        list.appendChild(li);
+      });
+    });
+
+    function addPatient() {
+      const name = document.getElementById('patientName').value.trim();
+      if (name) {
+        socket.emit('addPatient', name);
+        document.getElementById('patientName').value = ''; // clear input
+      }
+    }
+
+    function callNext() {
+      socket.emit('callNext');
+    }
+
+    function setAvgTime() {
+      const minutes = document.getElementById('avgTime').value;
+      if (minutes) {
+        socket.emit('setAvgTime', Number(minutes));
+      }
+    }
+  </script>
+</body>
+</html>

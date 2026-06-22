@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Waiting Room</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #1c2733; color: white; margin: 0; padding: 40px 20px; }
+    h1 { font-size: 28px; color: #a9c4e0; }
+    .now-serving { font-size: 22px; color: #a9c4e0; margin-top: 30px; }
+    .token-number { font-size: 120px; font-weight: bold; color: #4cd964; margin: 10px 0; }
+    .info-box { background: #2c3a4b; border-radius: 12px; padding: 20px; margin: 30px auto; max-width: 400px; }
+    .info-row { display: flex; justify-content: space-between; font-size: 20px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>🏥 Waiting Room</h1>
+
+  <div class="now-serving">Now Serving</div>
+  <div class="token-number" id="currentToken">0</div>
+
+  <div class="info-box">
+    <div class="info-row">
+      <span>Tokens Ahead:</span>
+      <span id="tokensAhead">0</span>
+    </div>
+    <div class="info-row">
+      <span>Estimated Wait:</span>
+      <span id="estWait">0 min</span>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on('queueUpdate', (queue) => {
+      document.getElementById('currentToken').innerText = queue.currentToken;
+
+      const tokensAhead = queue.waitingList.length;
+      document.getElementById('tokensAhead').innerText = tokensAhead;
+
+      const estWait = tokensAhead * queue.avgConsultTime;
+      document.getElementById('estWait').innerText = estWait + ' min';
+    });
+  </script>
+</body>
+</html>
